@@ -26,13 +26,13 @@
       user-select: none;
     }
     #clock {
-      font-size: clamp(4rem, 20vw, 12rem);
+      font-size: 20vw;
       font-weight: bold;
       line-height: 1;
       white-space: nowrap;
     }
     #date {
-      font-size: clamp(1.5rem, 6vw, 4rem);
+      font-size: 6vw;
       margin-top: 0.5em;
       text-transform: uppercase;
       font-weight: bold;
@@ -45,15 +45,19 @@
 
   <script>
     (function(){
+      // Older Safari doesn't support padStart or clamp()
       var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
       var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
       var clockEl = document.getElementById('clock');
       var dateEl = document.getElementById('date');
+      function twoDigits(n) {
+        return n < 10 ? '0' + n : n;
+      }
       function update() {
         var now = new Date();
-        var h = now.getHours().toString().padStart(2,'0');
-        var m = now.getMinutes().toString().padStart(2,'0');
-        var s = now.getSeconds().toString().padStart(2,'0');
+        var h = twoDigits(now.getHours());
+        var m = twoDigits(now.getMinutes());
+        var s = twoDigits(now.getSeconds());
         clockEl.textContent = h + ':' + m + ':' + s;
         var day = days[now.getDay()].toUpperCase();
         var month = months[now.getMonth()].toUpperCase();
@@ -62,7 +66,7 @@
         dateEl.textContent = day + ', ' + month + ' ' + d + ', ' + y;
       }
       update();
-      setInterval(update,1000);
+      setInterval(update, 1000);
     })();
   </script>
 </body>
