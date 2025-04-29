@@ -1,72 +1,162 @@
+<!-- Minimal JS Clock with Extended Themes & Fonts -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Minimal JS Digital Clock</title>
-  <!-- JetBrains Mono font -->
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <title>Customizable Full-Screen Clock</title>
+  <!-- Monospaced Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Fira+Code:wght@400&family=Source+Code+Pro:wght@400&family=Roboto+Mono:wght@400;700&family=Inconsolata:wght@400&family=Space+Mono:wght@400&family=IBM+Plex+Mono:wght@400&family=Anonymous+Pro&display=swap" rel="stylesheet">
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      color: #fff;
-      display: -webkit-flex;
-      display: flex;
-      -webkit-justify-content: center;
-      justify-content: center;
-      -webkit-align-items: center;
-      align-items: center;
-      -webkit-flex-direction: column;
-      flex-direction: column;
-      font-family: 'JetBrains Mono', monospace;
+      margin: 0; padding: 0;
+      width:100%; height:100%;
+      display: -webkit-flex; display: flex;
+      -webkit-flex-direction: column; flex-direction: column;
+      -webkit-justify-content: center; justify-content: center;
+      -webkit-align-items: center; align-items: center;
+      background: #000; color: #fff;
       user-select: none;
+      overflow: hidden;
     }
-    #clock {
-      font-size: 20vw;
-      font-weight: bold;
-      line-height: 1;
-      white-space: nowrap;
+    /* Theme classes */
+    body.theme-neon           { background: #000;    color: #0ff;   }
+    body.theme-sunset         { background: #ff6e6c; color: #000;   }
+    body.theme-classic        { background: #000;    color: #fff;   }
+    body.theme-forest         { background: #004d26; color: #a8e6cf;}
+    body.theme-ocean          { background: #001f3f; color: #7fdbff;}
+    body.theme-mars           { background: #330000; color: #fff5ee;}
+    body.theme-highcontrast   { background: #000;    color: #ff0;   }
+    body.theme-solarizedDark  { background: #002b36; color: #839496;}
+    body.theme-solarizedLight { background: #fdf6e3; color: #657b83;}
+    body.theme-terminal       { background: #000300; color: #0f0;   }
+    body.theme-nixie          { background: #2a1b00; color: #ff8c00;}
+    /* New high-contrast themes */
+    body.theme-space          { background: #0b0033; color: #66ffcc;}
+    body.theme-candy          { background: #ff0066; color: #fff;   }
+    body.theme-steel          { background: #2e3b4e; color: #f7f9fb;}
+    body.theme-sky            { background: #87ceeb; color: #1a1a1a;}
+    body.theme-amber          { background: #ffbf00; color: #1a1a1a;}
+
+    /* Font classes */
+    body.font-JetBrainsMono   { font-family: 'JetBrains Mono', monospace; }
+    body.font-FiraCode        { font-family: 'Fira Code', monospace; }
+    body.font-SourceCodePro   { font-family: 'Source Code Pro', monospace; }
+    body.font-RobotoMono      { font-family: 'Roboto Mono', monospace; }
+    body.font-Inconsolata     { font-family: 'Inconsolata', monospace; }
+    body.font-SpaceMono       { font-family: 'Space Mono', monospace; }
+    body.font-IBMPlexMono     { font-family: 'IBM Plex Mono', monospace; }
+    body.font-AnonymousPro    { font-family: 'Anonymous Pro', monospace; }
+
+    /* Clock and date */
+    #clock { font-size: 20vw; font-weight: bold; line-height:1; white-space:nowrap; }
+    #date  { font-size: 6vw;  margin-top:0.5em; text-transform:uppercase; font-weight:bold; }
+
+    /* Controls */
+    #controls {
+      position:absolute; top:5px; right:5px;
+      background:rgba(0,0,0,0.5); padding:5px; border-radius:5px;
+      font-size:12px; color:#fff; z-index:10;
+      display: -webkit-flex; display: flex;
+      -webkit-flex-wrap: wrap; flex-wrap: wrap;
+      -webkit-align-items: center; align-items: center;
+      -webkit-justify-content: center; justify-content: center;
+      gap:4px;
     }
-    #date {
-      font-size: 6vw;
-      margin-top: 0.5em;
-      text-transform: uppercase;
-      font-weight: bold;
+    #controls label, #controls select, #controls button {
+      margin:2px;
     }
+    #controls select, #controls button { font-size:12px; }
   </style>
 </head>
-<body>
+<body class="theme-neon font-JetBrainsMono">
+  <div id="controls" onclick="event.cancelBubble=true; if(event.stopPropagation) event.stopPropagation();">
+    <label>Theme:<select id="themeSelect">
+      <option value="neon">Neon</option>
+      <option value="sunset">Sunset</option>
+      <option value="classic">Classic</option>
+      <option value="forest">Forest</option>
+      <option value="ocean">Ocean</option>
+      <option value="mars">Mars</option>
+      <option value="highcontrast">High Contrast</option>
+      <option value="solarizedDark">Solarized Dark</option>
+      <option value="solarizedLight">Solarized Light</option>
+      <option value="terminal">Terminal</option>
+      <option value="nixie">Nixie Tube</option>
+      <option value="space">Space</option>
+      <option value="candy">Candy</option>
+      <option value="steel">Steel</option>
+      <option value="sky">Sky</option>
+      <option value="amber">Amber</option>
+    </select></label>
+    <label>Font:<select id="fontSelect">
+      <option value="JetBrainsMono">JetBrains Mono</option>
+      <option value="FiraCode">Fira Code</option>
+      <option value="SourceCodePro">Source Code Pro</option>
+      <option value="RobotoMono">Roboto Mono</option>
+      <option value="Inconsolata">Inconsolata</option>
+      <option value="SpaceMono">Space Mono</option>
+      <option value="IBMPlexMono">IBM Plex Mono</option>
+      <option value="AnonymousPro">Anonymous Pro</option>
+    </select></label>
+    <label>Format:<select id="formatSelect">
+      <option value="24">24-hour</option>
+      <option value="12">12-hour</option>
+    </select></label>
+    <button id="fsButton">Full Screen</button>
+    <button id="increaseFont">A+</button>
+    <button id="decreaseFont">A-</button>
+  </div>
+
   <div id="clock">00:00:00</div>
   <div id="date">MONDAY, JANUARY 1, 2025</div>
 
   <script>
     (function(){
-      // Older Safari doesn't support padStart or clamp()
       var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
       var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
       var clockEl = document.getElementById('clock');
-      var dateEl = document.getElementById('date');
-      function twoDigits(n) {
-        return n < 10 ? '0' + n : n;
-      }
-      function update() {
+      var dateEl  = document.getElementById('date');
+      var body    = document.body;
+
+      function twoDigits(n){ return n<10?'0'+n:n; }
+      var scale = 1;
+      function update(){
         var now = new Date();
         var h = twoDigits(now.getHours());
         var m = twoDigits(now.getMinutes());
         var s = twoDigits(now.getSeconds());
-        clockEl.textContent = h + ':' + m + ':' + s;
+        var fmt = document.getElementById('formatSelect').value;
+        var timeStr = fmt==='12'?(function(){ var hh=now.getHours()%12||12; return twoDigits(hh)+':'+m+':'+s+' '+(now.getHours()<12?'AM':'PM'); })():h+':'+m+':'+s;
+        clockEl.innerHTML=timeStr;
         var day = days[now.getDay()].toUpperCase();
         var month = months[now.getMonth()].toUpperCase();
-        var d = now.getDate();
-        var y = now.getFullYear();
-        dateEl.textContent = day + ', ' + month + ' ' + d + ', ' + y;
+        dateEl.innerHTML = day+', '+month+' '+now.getDate()+', '+now.getFullYear();
       }
+      setInterval(update,1000);
       update();
-      setInterval(update, 1000);
+
+      // Theme selector
+      document.getElementById('themeSelect').onchange = function(){
+        var t=this.value;
+        var cls = body.className.split(' ');
+        for(var i=0;i<cls.length;i++) if(cls[i].indexOf('theme-')===0) body.classList.remove(cls[i]);
+        body.classList.add('theme-'+t);
+      };
+      // Font selector
+      document.getElementById('fontSelect').onchange = function(){
+        var f=this.value;
+        var cls = body.className.split(' ');
+        for(var i=0;i<cls.length;i++) if(cls[i].indexOf('font-')===0) body.classList.remove(cls[i]);
+        body.classList.add('font-'+f);
+      };
+      // Fullscreen
+      document.getElementById('fsButton').onclick = function(e){ e.cancelBubble=true; var el = document.documentElement; if(el.requestFullscreen) el.requestFullscreen(); else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen(); else if(el.msRequestFullscreen) el.msRequestFullscreen(); };
+      // Font size controls
+      document.getElementById('increaseFont').onclick = function(e){ e.cancelBubble=true; scale += 0.1; if(scale>3) scale=3; clockEl.style.fontSize=(20*scale)+'vw'; dateEl.style.fontSize=(6*scale)+'vw'; };
+      document.getElementById('decreaseFont').onclick = function(e){ e.cancelBubble=true; scale -= 0.1; if(scale<0.5) scale=0.5; clockEl.style.fontSize=(20*scale)+'vw'; dateEl.style.fontSize=(6*scale)+'vw'; };
+      // Initial classes
+      body.classList.add('theme-neon','font-JetBrainsMono');
     })();
   </script>
 </body>
