@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Customizable Full-Screen Clock</title>
+  <!-- Import Monospaced Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;900&family=Fira+Code:wght@400;700&family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Theme colors */
+      --bg-start: #000;
+      --bg-end:   #111;
+      --text-color: #fff;
+      /* Font family */
+      --font-family: 'JetBrains Mono', monospace;
+      /* Font scale */
+      --scale: 1;
+      /* Text shadows (for nixie theme) */
+      --text-shadow-clock: none;
+      --text-shadow-date: none;
+      /* Base sizes */
+      --base-clock-size: clamp(5rem, 20vw, 15rem);
+      --base-date-size: clamp(2rem, 6vw, 6rem);
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(circle at center, var(--bg-start) 0%, var(--bg-end) 100%);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      cursor: pointer;
+      user-select: none;
+      font-family: var(--font-family);
+    }
+    #clock {
+      font-size: calc(var(--base-clock-size) * var(--scale));
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      text-shadow: var(--text-shadow-clock);
+    }
+    #date {
+      font-size: calc(var(--base-date-size) * var(--scale));
+      font-weight: 700;
+      margin-top: 0.5em;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      text-shadow: var(--text-shadow-date);
+    }
+    #controls {
+      position: absolute;
+      top: 10px; right: 10px;
+      background: rgba(0,0,0,0.5);
+      padding: 0.5em 1em;
+      border-radius: 0.5em;
+      font-size: 1vw;
+      color: #fff;
+      display: flex;
+      gap: 1em;
+      align-items: center;
+    }
+    #controls label, #controls button {
+      display: flex;
+      align-items: center;
+      gap: 0.25em;
+    }
+    #controls select, #controls button {
+      font: inherit;
+      cursor: pointer;
+    }
+    #hint {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      font-size: 1.5vw;
+      opacity: 0.4;
+      color: #fff;
+    }
+  </style>
+</head>
+<body onclick="enterFullscreen()">
+  <div id="controls" onclick="event.stopPropagation()">
+    <label>
+      Theme:
+      <select id="themeSelect">
+        <option value="neon">Neon</option>
+        <option value="sunset">Sunset</option>
+        <option value="classic">Classic</option>
+        <option value="forest">Forest</option>
+        <option value="ocean">Ocean</option>
+        <option value="mars">Mars</option>
+        <option value="highcontrast">High Contrast</option>
+        <option value="solarizedDark">Solarized Dark</option>
+        <option value="solarizedLight">Solarized Light</option>
+        <option value="terminal">Terminal</option>
+        <option value="nixie">Nixie Tube</option>
+      </select>
+    </label>
+    <label>
+      Format:
+      <select id="formatSelect">
+        <option value="24">24-hour</option>
+        <option value="12">12-hour</option>
+      </select>
+    </label>
+    <label>
+      Font Face:
+      <select id="fontSelect">
+        <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+        <option value="'Fira Code', monospace">Fira Code</option>
+        <option value="'Source Code Pro', monospace">Source Code Pro</option>
+      </select>
+    </label>
+    <button id="decreaseFont">A–</button>
+    <button id="increaseFont">A+</button>
+  </div>
+
+  <div id="clock">00:00:00</div>
+  <div id="date">Loading…</div>
+  <div id="hint">Click or tap to go full-screen</div>
+
+  <script>
+    const days   = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+    const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+
+    const themes = {
+      neon:          { bgStart: '#000',    bgEnd: '#111',    text: '#0ff',    clockShadow: 'none',             dateShadow: 'none' },
+      sunset:        { bgStart: '#2c003e', bgEnd: '#ff6e6c', text: '#ffd700', clockShadow: 'none',             dateShadow: 'none' },
+      classic:       { bgStart: '#000',    bgEnd: '#000',    text: '#fff',    clockShadow: 'none',             dateShadow: 'none' },
+      forest:        { bgStart: '#012a19', bgEnd: '#004d26', text: '#a8e6cf', clockShadow: 'none',             dateShadow: 'none' },
+      ocean:         { bgStart: '#001f3f', bgEnd: '#0074d9', text: '#7fdbff', clockShadow: 'none',             dateShadow: 'none' },
+      mars:          { bgStart: '#330000', bgEnd: '#ff4500', text: '#fff5ee', clockShadow: 'none',             dateShadow: 'none' },
+      highcontrast:  { bgStart: '#000',    bgEnd: '#000',    text: '#ffff00', clockShadow: 'none',             dateShadow: 'none' },
+      solarizedDark: { bgStart: '#002b36', bgEnd: '#073642', text: '#839496', clockShadow: 'none',             dateShadow: 'none' },
+      solarizedLight:{ bgStart: '#fdf6e3', bgEnd: '#eee8d5', text: '#657b83', clockShadow: 'none',             dateShadow: 'none' },
+      terminal:      { bgStart: '#000300', bgEnd: '#001f00', text: '#00ff00', clockShadow: 'none',             dateShadow: 'none' },
+      nixie:         { bgStart: '#2a1b00', bgEnd: '#000',    text: '#ff8c00', clockShadow: '0 0 5px #ff8c00,0 0 10px #ff8c00', dateShadow: '0 0 3px #ff8c00,0 0 6px #ff8c00' }
+    };
+
+    function applyTheme(name) {
+      const t = themes[name];
+      document.documentElement.style.setProperty('--bg-start',     t.bgStart);
+      document.documentElement.style.setProperty('--bg-end',       t.bgEnd);
+      document.documentElement.style.setProperty('--text-color',   t.text);
+      document.documentElement.style.setProperty('--text-shadow-clock', t.clockShadow);
+      document.documentElement.style.setProperty('--text-shadow-date',  t.dateShadow);
+    }
+
+    document.getElementById('themeSelect').addEventListener('change', e => applyTheme(e.target.value));
+    document.getElementById('fontSelect').addEventListener('change', e => {
+      document.documentElement.style.setProperty('--font-family', e.target.value);
+    });
+
+    // Font scaling
+    let scale = 1;
+    const minScale = 0.5, maxScale = 2, step = 0.1;
+    document.getElementById('increaseFont').addEventListener('click', e => {
+      e.stopPropagation();
+      scale = Math.min(maxScale, +(scale + step).toFixed(2));
+      document.documentElement.style.setProperty('--scale', scale);
+    });
+    document.getElementById('decreaseFont').addEventListener('click', e => {
+      e.stopPropagation();
+      scale = Math.max(minScale, +(scale - step).toFixed(2));
+      document.documentElement.style.setProperty('--scale', scale);
+    });
+
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      const mins  = String(now.getMinutes()).padStart(2,'0');
+      const secs  = String(now.getSeconds()).padStart(2,'0');
+      const fmt   = document.getElementById('formatSelect').value;
+      let displayTime;
+
+      if (fmt === '12') {
+        const ampm = hours < 12 ? 'AM' : 'PM';
+        hours = hours % 12 || 12;
+        displayTime = String(hours).padStart(2,'0') + ':' + mins + ':' + secs + ' ' + ampm;
+      } else {
+        displayTime = String(hours).padStart(2,'0') + ':' + mins + ':' + secs;
+      }
+      document.getElementById('clock').textContent = displayTime;
+
+      const dayName   = days[now.getDay()];
+      const monthName = months[now.getMonth()];
+      const dateNum   = now.getDate();
+      const year      = now.getFullYear();
+      document.getElementById('date').textContent = `${dayName}, ${monthName} ${dateNum}, ${year}`;
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function enterFullscreen() {
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      else if (el.msRequestFullscreen) el.msRequestFullscreen();
+      document.getElementById('hint').style.display = 'none';
+      document.body.onclick = null;
+    }
+
+    // Initialize defaults
+    applyTheme('neon');
+    document.documentElement.style.setProperty('--font-family', "'JetBrains Mono', monospace");
+  </script>
+</body>
+</html>
