@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Clock</title>
+<style type="text/css">
+body {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  font-family: monospace;
+  background: #fff;
+  color: #000;
+}
+#watermark {
+  position: absolute;
+  left: 0; right: 0; top: 30px;
+  width: 100%;
+  font-size: 80px;
+  color: #cccc00;
+  opacity: 0.45;
+  filter: alpha(opacity=45); /* For old IE, doesn't affect iOS */
+  z-index: 0;
+}
+#clock {
+  margin-top: 120px;
+  font-size: 118px;
+  font-weight: bold;
+  z-index: 1;
+}
+#date {
+  margin-top: 20px;
+  font-size: 40px;
+  z-index: 1;
+}
+</style>
+</head>
+<body>
+<div id="watermark">SUN</div>
+<div id="clock">00:00:00</div>
+<div id="date">Loading date...</div>
+<script type="text/javascript">
+// Helper for padding
+function pad(n) { return n < 10 ? '0'+n : n; }
+
+function updateClock() {
+  var now = new Date();
+  var h = now.getHours();
+  var m = now.getMinutes();
+  var s = now.getSeconds();
+  var isAM = h < 12;
+  var displayHour = h % 12;
+  if (displayHour === 0) displayHour = 12;
+  var strTime = pad(displayHour) + ':' + pad(m) + ':' + pad(s);
+
+  // Set clock
+  document.getElementById('clock').innerHTML = strTime;
+
+  // Set background and text color
+  if(isAM) {
+    document.body.style.background = "#fff";
+    document.body.style.color = "#000";
+    document.getElementById('watermark').style.color = "#cccc00";
+    document.getElementById('watermark').innerHTML = "AM";
+  } else {
+    document.body.style.background = "#000";
+    document.body.style.color = "#0ff";
+    document.getElementById('watermark').style.color = "#3366cc";
+    document.getElementById('watermark').innerHTML = "PM";
+  }
+
+  // Set date
+  var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months = [
+    'January','February','March','April','May','June',
+    'July','August','September','October','November','December'
+  ];
+  var longDate = days[now.getDay()] + ', ' +
+                 months[now.getMonth()] + ' ' +
+                 now.getDate() + ', ' +
+                 now.getFullYear();
+  document.getElementById('date').innerHTML = longDate;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+</script>
+</body>
+</html>
